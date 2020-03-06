@@ -10,7 +10,7 @@ class Device {
 
     close() {
 	if (this.serialPort) {
-	    console.log(`${this.serialPort.path}: closing`);
+//	    console.log(`${this.serialPort.path}: closing`);
 	    this.serialPort.close();
 	}
     }
@@ -72,11 +72,11 @@ class Device {
 	var self = this;
 
 	var port = self.portList[params.peripheralId];
-	self.serialPort = new SerialPort(port.comName, {baudRate: 115200, autoOpen: false});
-	console.log(`${self.serialPort.path}: connecting`);
+	self.serialPort = new SerialPort(port.comName, {baudRate: 38400, autoOpen: false});
+//	console.log(`${self.serialPort.path}: connecting`);
 
 	self.serialPort.on('error', function (error) {
-	    console.log(`${self.serialPort.path}: ${error.message}`);
+//	    console.log(`${self.serialPort.path}: ${error.message}`);
 	    var result = {'code': -1000, 'message': error.message};
 	    self.makeError(result, id);
 	    // no need to close it
@@ -84,16 +84,16 @@ class Device {
 	});
 
 	self.serialPort.on('open', function () {
-	    console.log(`${self.serialPort.path}: connected`);
+//	    console.log(`${self.serialPort.path}: connected`);
 	    self.makeOk(id);
 	});
 
 	self.serialPort.on('data', (chunk) => {
-	    console.log(`${self.serialPort.path}: received ${chunk.length} bytes`);
+//	    console.log(`${self.serialPort.path}: received ${chunk.length} bytes`);
 	    var params = {'message': chunk.toString('base64'),
-			  'encoding': 'base64'};
+			  'encoding': 'base64', 'serviceId': '61445', 'charactericId':'9dfdc434-5bfb-11ea-af5e-074c022b8311'};
 	    // no id as we are not expecting a reply
-	    self.makeCall('didReceiveMessage', params);
+	    self.makeCall('characteristicDidChange', params);
 	});
 
 	self.serialPort.open();
@@ -105,7 +105,7 @@ class Device {
 	const buf = Buffer.from(message, encoding);
 
 	this.serialPort.write(buf);
-	console.log(`${this.serialPort.path}: sending ${buf.length} bytes`);
+//	console.log(`${this.serialPort.path}: sending ${buf.length} bytes`);
 	this.makeResult(buf.length, id);
     }
 
@@ -113,24 +113,28 @@ class Device {
 	var message = params.message
 	var encoding = params.encoding
 	const buf = Buffer.from(message, encoding)
-	console.log(`${this.serialPort.path}: writing ${buf.length} bytes to ${params.characteristicId}`);
+//	console.log(`${this.serialPort.path}: writing ${buf.length} bytes to ${params.characteristicId}`);
 	this.makeResult(buf.length, id);
     }
 
     startNotifications(params, id) {
-	console.log(`${this.serialPort.path}: starting notifications on ${params.characteristicId}`);
+//	console.log(`${this.serialPort.path}: starting notifications on ${params.characteristicId}`);
 	this.makeOk(id);
     }
 
     stopNotifications(params, id) {
-	console.log(`${this.serialPort.path}: stopping notifications on ${params.characteristicId}`);
+//	console.log(`${this.serialPort.path}: stopping notifications on ${params.characteristicId}`);
 	this.makeOk(id);
     }
 
     read(params, id) {
-	console.log(`${this.serialPort.path}: reading ${params.characteristicId}`);
-	var result = {'message': 'DUMMY'}
-	this.makeResult(result, id);
+//	console.log(`${this.serialPort.path}: reading ${params.characteristicId}`);
+//	var result = {'message': 'DUMMY'}
+	var result = {};
+        const output = new Uint8Array(1);
+        output[0] = 0x01;
+        this.serialPort.write(output);
+        this.makeResult(result, id);
     }
 
 }
